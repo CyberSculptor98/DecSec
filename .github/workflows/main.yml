@@ -1,4 +1,4 @@
-name: WordPress CI/CD Pipeline
+name: DevSecOps Pipeline
 
 on:
   push:
@@ -10,23 +10,26 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
-      
-    - name: Pull WordPress image from Docker Hub
-      run: docker pull wordpress:latest
+      - name: Check out code
+        uses: actions/checkout@v2
 
-    - name: Run software composition analysis
-      # Replace this with your actual SCA tool and command
-      run: |
-        # Example command with some hypothetical tool
-        safety check
+      - name: Retrieve WordPress image from Docker Hub
+        run: docker pull wordpress:latest
 
-    - name: Deploy to production using Terraform
-      # Replace this with actual Terraform deployment steps
-      run: |
-        # Example Terraform commands to deploy infrastructure
-        terraform init
-        terraform plan
-        terraform apply --auto-approve
+      - name: Run software composition analysis
+        uses: docker://aquasec/trivy:latest
+        with:
+          args: wordpress:latest
 
+      - name: Deploy Terraform infrastructure
+        uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_version: 1.0.0
+        env:
+          TF_VAR_aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          TF_VAR_aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          TF_VAR_region: eu-central-1
+        run: |
+          terraform init
+          terraform plan -out=tfplan
+          terraform apply tfplan
