@@ -1,8 +1,32 @@
-name: hello-world
-on: push
+name: WordPress CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+
 jobs:
-  my-job:
+  build:
     runs-on: ubuntu-latest
+
     steps:
-      - name: my-step
-        run: echo "Hello World!"
+    - name: Checkout code
+      uses: actions/checkout@v2
+      
+    - name: Pull WordPress image from Docker Hub
+      run: docker pull wordpress:latest
+
+    - name: Run software composition analysis
+      # Replace this with your actual SCA tool and command
+      run: |
+        # Example command with some hypothetical tool
+        safety check
+
+    - name: Deploy to production using Terraform
+      # Replace this with actual Terraform deployment steps
+      run: |
+        # Example Terraform commands to deploy infrastructure
+        terraform init
+        terraform plan
+        terraform apply --auto-approve
+
